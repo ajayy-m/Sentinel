@@ -1,0 +1,67 @@
+system:
+  protocol_version: "1.0"
+
+transport:
+  mode: "tcp"
+  endpoint: "tcp://collector:5556"
+  receive_timeout_ms: 1000
+  send_timeout_ms: 1000
+  discovery:
+    enabled: false
+
+collector:
+  print_payload: false
+  max_nodes_soft: 20
+  max_nodes_hard: 50
+  hard_limit_mode: "warn"
+  storage_enabled: true
+  sqlite_path: "${SENTINEL_SQLITE_PATH:/app/data/sentinel.db}"
+  process_count_delta_threshold: 25
+  discovery_scan_seconds: 15.0
+  prometheus:
+    enabled: true
+    host: "0.0.0.0"
+    port: 8000
+
+pipeline:
+  cpu_warn_percent: 80
+  cpu_critical_percent: 95
+  memory_warn_percent: 80
+  memory_critical_percent: 95
+  disk_warn_percent: 85
+  disk_critical_percent: 95
+  warning_score_threshold: 70
+  critical_score_threshold: 40
+
+anomaly:
+  window_size: 20
+  min_samples: 8
+  zscore_warn: 2.0
+  zscore_critical: 3.0
+
+root_cause:
+  window_seconds: 60
+  cooldown_seconds: 30
+  min_repeated_anomalies: 2
+  min_metric_instability_count: 3
+  enable_llm: false
+
+ai:
+  llm:
+    base_url: "http://localhost:11434"
+    model: "mistral:7b-instruct"
+    timeout_seconds: 30
+
+recommendations:
+  cooldown_seconds: 30
+
+approval_gate:
+  request_cooldown_seconds: 30
+  auto_promote_recommendations: false
+
+ui:
+  window_title: "Sentinel Control Center"
+  window_width: 1440
+  window_height: 900
+  refresh_interval_ms: 2000
+  max_rows: 10

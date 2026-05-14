@@ -1,0 +1,23 @@
+[Unit]
+Description=Sentinel Collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sentinel
+Group=sentinel
+WorkingDirectory=/opt/sentinel
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/sentinel/sentinel.env
+ExecStart=/opt/sentinel/venv/bin/python sentinel.py collector --config /etc/sentinel/config.yaml
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/sentinel/data /opt/sentinel/logs
+
+[Install]
+WantedBy=multi-user.target

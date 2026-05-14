@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime data
+data/
+*.db
+
+# Build and portable bundle outputs
+build/
+dist/
+ollama/
+ollama-models/
+_internal/
+logs/
+SentinelPilot.exe
+SentinelPilot.spec
+
+# Editor
+.vscode/

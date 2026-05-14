@@ -1,0 +1,50 @@
+services:
+  collector:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    command: ["python", "sentinel.py", "collector", "--config", "config/docker-compose.yaml"]
+    environment:
+      SENTINEL_SQLITE_PATH: /app/data/sentinel.db
+    ports:
+      - "5556:5556"
+      - "8000:8000"
+    volumes:
+      - ../../data:/app/data
+      - ../../logs:/app/logs
+    restart: unless-stopped
+
+  agent:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    command: ["python", "sentinel.py", "agent", "--config", "config/docker-compose.yaml"]
+    environment:
+      SENTINEL_ENDPOINT: tcp://collector:5556
+      SENTINEL_SQLITE_PATH: /app/data/sentinel.db
+    depends_on:
+      - collector
+    volumes:
+      - ../../data:/app/data
+      - ../../logs:/app/logs
+    restart: unless-stopped
+
+  prometheus:
+    # Prometheus service removed (managed externally or disabled)
+  grafana:
+    image: grafana/grafana-oss:11.3.0
+    # depends_on prometheus removed
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../../deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../deploy/grafana/sentinel-observability-dashboard.json:/var/lib/grafana/dashboards/sentinel-observability-dashboard.json:ro
+    restart: unless-stopped
+
+volumes:
+  grafana_data:

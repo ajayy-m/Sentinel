@@ -1,0 +1,98 @@
+system:
+  protocol_version: "1.0"
+  node_id: "${SENTINEL_NODE_ID:}"
+
+transport:
+  mode: "tcp"
+  endpoint: "${SENTINEL_ENDPOINT:tcp://127.0.0.1:5556}"
+  collector_endpoints: []
+  auth:
+    enabled: false
+    scheme: "hmac-sha256"
+    shared_key: "${SENTINEL_SHARED_KEY:}"
+  receive_timeout_ms: 1000
+  send_timeout_ms: 1000
+  discovery:
+    enabled: true
+    collector_port: 37020
+    agent_port: 37021
+    broadcast_address: "255.255.255.255"
+    timeout_seconds: 1.0
+    attempts: 3
+    scan_timeout_seconds: 0.25
+    scan_attempts: 2
+    max_scan_responses: 256
+    retry_seconds: 5.0
+
+collector:
+  print_payload: true
+  max_nodes_soft: 20
+  max_nodes_hard: 50
+  hard_limit_mode: "warn"
+  storage_enabled: true
+  sqlite_path: "${SENTINEL_SQLITE_PATH:./data/sentinel.db}"
+  process_count_delta_threshold: 25
+  discovery_scan_seconds: 15.0
+  prometheus:
+    enabled: true
+    host: "127.0.0.1"
+    port: 8000
+
+pipeline:
+  cpu_warn_percent: 80
+  cpu_critical_percent: 95
+  memory_warn_percent: 80
+  memory_critical_percent: 95
+  disk_warn_percent: 85
+  disk_critical_percent: 95
+  warning_score_threshold: 70
+  critical_score_threshold: 40
+
+anomaly:
+  window_size: 20
+  min_samples: 8
+  zscore_warn: 2.0
+  zscore_critical: 3.0
+
+root_cause:
+  window_seconds: 60
+  cooldown_seconds: 30
+  min_repeated_anomalies: 2
+  min_metric_instability_count: 3
+  enable_llm: false
+
+ai:
+  llm:
+    base_url: "${OLLAMA_BASE_URL:http://localhost:11434}"
+    model: "${OLLAMA_MODEL:qwen2.5:7b}"
+    timeout_seconds: 30
+
+recommendations:
+  cooldown_seconds: 30
+
+approval_gate:
+  request_cooldown_seconds: 30
+  auto_promote_recommendations: false
+
+execution:
+  enabled: false
+  backend: "dry_run"
+  queue_dir: "./data/executions"
+
+integration:
+  api:
+    enabled: false
+    host: "127.0.0.1"
+    port: 8085
+    max_rows: 20
+  webhooks:
+    enabled: false
+    urls: []
+    timeout_seconds: 5.0
+
+ui:
+  window_title: "Sentinel Control Center"
+  window_width: 1440
+  window_height: 900
+  refresh_interval_ms: 2000
+  max_rows: 10

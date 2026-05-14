@@ -1,0 +1,4 @@
+timestamp_utc,node_id,metric_type,spike_type,alert_generated,alert_category,detection_latency_seconds,false_positive,operator_approved,approval_latency_seconds,notes
+2026-05-05T14:00:00Z,pilot-node-1,cpu,cpu_spike,yes,cpu,15,no,yes,95,correct detection
+2026-05-05T14:05:00Z,pilot-node-1,memory,memory_spike,yes,memory,18,no,yes,120,correct detection
+2026-05-05T14:10:00Z,pilot-node-2,disk,disk_spike,no,,n/a,yes,no,n/a,false negative

@@ -1,0 +1,150 @@
+Sentinel Implementation Plan (Current State)
+Date: 2026-05-04
+
+============================================================
+1) Objective
+============================================================
+Build a local-first, AI-assisted fleet monitor for small/medium lab fleets
+(roughly 6-20 nodes), with human approval gates for all potentially unsafe
+actions.
+
+Current architecture is intentionally practical and already running:
+- Agent -> Collector transport: ZeroMQ + msgpack
+- Persistence: SQLite (hot operational store)
+- UI: PyQt6 + pyqtgraph
+- AI layers: anomaly scoring, root-cause hints, recommendations
+- Discovery: dynamic LAN node/collector discovery over UDP broadcast
+
+============================================================
+2) Implemented Architecture (As-Built)
+============================================================
+Entry point
+- sentinel.py
+  - roles: agent, collector, report, ui, simulate
+
+Agent
+- sentinel/agent/agent.py
+  - psutil-based collectors
+  - stable node identity auto-derivation (hostname + digest)
+  - explicit endpoint or auto-discovery fallback
+  - periodic payload send to collector
+
+Collector
+- sentinel/core/collector.py
+  - receives payloads on ZMQ PULL
+  - runs health pipeline + anomaly scorer + root-cause + recommendations
+  - stores artifacts in SQLite
+  - tracks discovered nodes
+
+Core
+- sentinel/core/pipeline.py: threshold-based health scoring/alerts
+- sentinel/core/anomaly.py: rolling z-score anomaly scoring
+- sentinel/core/root_cause.py: heuristic correlator + optional LLM path
+- sentinel/core/recommendations.py: recommendation generation (non-executing)
+- sentinel/core/storage.py: append-focused persistence
+- sentinel/core/schema.py: schema/protocol version validation
+- sentinel/core/preflight.py: startup readiness checks (fail on critical)
+- sentinel/core/identity.py: deterministic default node_id
+
+Discovery
+- sentinel/discovery.py
+  - agent discovers collector
+  - collector discovers agents
+
+UI
+- sentinel/ui/*
+  - dashboard tabs for health, alerts, hints, recommendations, approvals,
+    discovered nodes, and fleet trends
+  - legacy Windows-classic visual style applied
+
+Actions and Safety Gate
+- sentinel/actions/gate.py
+  - recommendation -> request workflow
+  - explicit approve/reject records
+  - non-executing safety design in current release
+
+Docs delivered
+- docs/SECURITY_BASELINE.md
+- docs/ACTION_RUNBOOKS.md
+- docs/AI_EVALUATION_KPI.md
+- docs/DATA_LIFECYCLE_POLICY.md
+- docs/PHASE0_HARDENING_SUMMARY.md
+- docs/PACKAGING_DEPLOYMENT.md
+
+============================================================
+3) Phase Status
+============================================================
+Phase 0 (Hardening): DONE (with noted follow-ups)
+- schema/version contract module implemented
+- security baseline documented
+- action runbooks documented
+- AI KPI framework documented
+- data lifecycle policy documented
+- startup preflight checks integrated into agent/collector
+
+Phase 1 (Core pipeline): DONE
+- agent metrics collection and collector ingest verified
+- storage and summary/report outputs verified
+
+Phase 2 (Detection/correlation): DONE
+- change detection active
+- anomaly scoring active
+- root-cause hint generation active
+
+Phase 3 (Recommendation/gate): DONE (non-executing mode)
+- recommendations generated
+- approval request/decision workflow available
+
+Phase 4 (UI): DONE
+- PyQt6 dashboard operational
+- live refresh/tables/charts operational
+
+============================================================
+4) Validation Evidence (Latest Runs)
+============================================================
+Validated on 2026-05-04:
+- Agent sends payload every ~2s to collector endpoint
+- Report summary returns populated latest artifacts (alerts/anomalies/hints)
+- Collector startup preflight passes and enters listen state
+- Purge CLI dry-run reports per-table retention impact safely
+- Stack mode starts collector + agent + UI from one command
+
+Preflight currently verifies:
+- writable data/log paths
+- required modules (zmq, msgpack, psutil, yaml)
+- optional capabilities (PyQt6, NVIDIA, Ollama)
+
+Recent refinement applied:
+- NVIDIA probe now reports concise GPU summary (no full process dump)
+- Audit tables now enforce append-only behavior via SQLite triggers
+- Automated immutability test suite passes (2 tests)
+
+============================================================
+5) Known Deviations from Early Drafts
+============================================================
+- SQLite is the active operational store (not DuckDB-first)
+- Parquet archival is policy-defined but not yet implemented in code
+- Action execution remains recommendation/approval oriented and safety-first
+
+These are acceptable for current scope and match project direction.
+
+============================================================
+6) Remaining Improvement Backlog (Priority Order)
+============================================================
+1. Add optional UI surfacing of preflight summary/state.
+
+============================================================
+7) Release Gate Criteria (Practical)
+============================================================
+Ready for controlled pilot when all are true:
+- preflight passes on target hosts
+- collector/agent/ui run from config/env only (no source edits)
+- audit records persist for recommendations/requests/decisions
+- rollback/restart procedures documented and tested
+
+============================================================
+8) Immediate Next Action
+============================================================
+Run a 1-week pilot on 2-3 real nodes with simulation spikes enabled,
+measure KPI targets (false-positive rate, detection latency, operator action
+acceptance), and tune thresholds before wider rollout.
