@@ -43,8 +43,15 @@ try {
             Write-Warning "Could not fully remove dist\${ExeName}: $($_.Exception.Message)"
         }
     }
+    if (Test-Path "dist\$ExeName.exe") {
+        try {
+            Remove-Item -Force "dist\$ExeName.exe" -ErrorAction Stop
+        } catch {
+            Write-Warning "Could not fully remove dist\${ExeName}.exe: $($_.Exception.Message)"
+        }
+    }
 
-    # Prepare bundle directory for PyInstaller embedding (onefile)
+    # Prepare bundle directory for PyInstaller embedding (onedir installer staging)
     $bundleDir = Join-Path $root "build\bundle_assets"
     if (Test-Path $bundleDir) {
         try {
@@ -110,7 +117,7 @@ try {
     # Build onefile EXE that embeds bundle assets
     $timestamp = (Get-Date -Format "yyyyMMddHHmmss")
     $workPath = Join-Path $root "build\pyinstaller_work_$timestamp"
-    $distPath = Join-Path $root "dist\portable_$timestamp"
+    $distPath = Join-Path $root "dist"
     if (-not (Test-Path $workPath)) { New-Item -ItemType Directory -Path $workPath | Out-Null }
     if (-not (Test-Path $distPath)) { New-Item -ItemType Directory -Path $distPath | Out-Null }
 
@@ -118,7 +125,7 @@ try {
         "-m", "PyInstaller",
         "--noconfirm",
         "--clean",
-        "--onefile",
+        "--onedir",
         "--name", $ExeName,
         "--collect-submodules", "pyqtgraph",
         "--workpath", $workPath,
@@ -127,7 +134,7 @@ try {
     if ($addDataArgs) { $pyinstallerArgs += $addDataArgs }
     $pyinstallerArgs += "sentinel.py"
 
-    Write-Host "Building onefile portable EXE package..."
+    Write-Host "Building onedir app bundle for installer packaging..."
     & $python @pyinstallerArgs
 
     if ($LASTEXITCODE -ne 0) {
@@ -135,8 +142,8 @@ try {
     }
 
     $distRoot = Join-Path $root "dist"
-    Write-Host "Build complete: $(Join-Path $distRoot $ExeName).exe"
-    Write-Host "Run with: .\$ExeName.exe pilot --config config\pilot.config.yaml"
+    Write-Host "Build complete: $(Join-Path $distRoot $ExeName)"
+    Write-Host "Run with: .\dist\$ExeName\$ExeName.exe pilot --config config\pilot.config.yaml"
 
     # Cleanup bundle dir
     try { Remove-Item -Recurse -Force $bundleDir } catch { }

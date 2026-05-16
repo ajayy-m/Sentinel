@@ -228,12 +228,14 @@ This repository now includes:
 - deploy/linux/sentinel-collector.service
 - deploy/linux/sentinel-agent.service
 - deploy/windows/install-services.ps1
+- scripts/build_windows_installer.ps1
+- installer/windows/SentinelPilot.iss
 
 These are baseline templates and can be hardened per environment policy.
 
-## 11. Windows EXE Packaging (Portable Pilot Bundle)
+## 11. Windows Setup Wizard (Installable Pilot Bundle)
 
-For pilot usage, Sentinel now supports a packaged EXE flow that launches:
+For pilot usage, Sentinel now supports a Windows installer flow that lays down:
 - collector
 - agent
 - api
@@ -247,11 +249,14 @@ From the project root:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-.\scripts\build_windows_exe.ps1
+.\scripts\build_windows_installer.ps1
 ```
 
-The script builds an onedir package in:
+The build stages an app folder in:
 - `dist\SentinelPilot\`
+
+Then compiles a wizard installer in:
+- `dist\installer\SentinelPilot-Setup.exe`
 
 Default behavior:
 - bundles `config/pilot.config.yaml`
@@ -261,22 +266,29 @@ Default behavior:
 Optional switches:
 
 ```powershell
-.\scripts\build_windows_exe.ps1 -IncludeOllamaRuntime:$false -IncludeOllamaModels:$false
+.\scripts\build_windows_installer.ps1 -IncludeOllamaRuntime:$false -IncludeOllamaModels:$false
 ```
 
-### Run packaged app
+### Install and run
 
-```powershell
-cd .\dist\SentinelPilot
-.\SentinelPilot.exe pilot --config config\pilot.config.yaml
-```
+Run `dist\installer\SentinelPilot-Setup.exe` and follow the wizard.
 
-When launched this way:
+The default install location is per-user and writable:
+- `%LOCALAPPDATA%\Sentinel`
+
+After installation, the files appear in the install folder, including:
+- `SentinelPilot.exe`
+- `config\pilot.config.yaml`
+- `ollama\` if bundled
+- `ollama-models\` if bundled
+- `logs\`
+
+When launched from the installed folder or shortcut:
 - `pilot` role starts collector/agent/api/ui together
 - if Ollama is not reachable at `localhost:11434`, Sentinel attempts to start bundled `ollama\ollama.exe`
 - if `ollama-models\` exists beside the EXE, `OLLAMA_MODELS` is set to that folder automatically
 
 ### Important model-bundling note
 
-Large Ollama models are multi-GB assets and are best distributed as files beside the EXE (onedir).
+Large Ollama models are multi-GB assets and are best distributed as files beside the EXE.
 This is more reliable than forcing all model blobs into a single onefile executable, which can lead to very large binaries, slow startup extraction, and platform size limits.
