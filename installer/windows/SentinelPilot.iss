@@ -43,8 +43,8 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "A
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
-Name: "{autoprograms}\{#AppName}"; Filename: "{app}\SentinelPilot.exe"; Parameters: "pilot --config config\pilot.config.yaml"; WorkingDir: "{app}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\SentinelPilot.exe"; Parameters: "pilot --config config\pilot.config.yaml"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\{#AppName}"; Filename: "{app}\SentinelPilot-Launcher.cmd"; WorkingDir: "{app}"
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\SentinelPilot-Launcher.cmd"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\SentinelPilot.exe"; Parameters: "pilot --config config\pilot.config.yaml"; WorkingDir: "{app}"; Description: "Launch Sentinel now"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\SentinelPilot-Launcher.cmd"; WorkingDir: "{app}"; Description: "Launch Sentinel now"; Flags: nowait postinstall skipifsilent

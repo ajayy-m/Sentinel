@@ -141,9 +141,20 @@ try {
         throw "PyInstaller build failed."
     }
 
+    # Copy launcher batch file into the bundle
+    $bundleExeDir = Join-Path $distPath $ExeName
+    $launcherSource = Join-Path $root "SentinelPilot-Launcher.cmd"
+    $launcherDest = Join-Path $bundleExeDir "SentinelPilot-Launcher.cmd"
+    if (Test-Path $launcherSource) {
+        Write-Host "Copying launcher batch file to bundle..."
+        Copy-Item $launcherSource $launcherDest -Force
+    } else {
+        Write-Warning "Launcher batch file not found at $launcherSource; users will launch the EXE directly."
+    }
+
     $distRoot = Join-Path $root "dist"
     Write-Host "Build complete: $(Join-Path $distRoot $ExeName)"
-    Write-Host "Run with: .\dist\$ExeName\$ExeName.exe pilot --config config\pilot.config.yaml"
+    Write-Host "Users should launch: .\dist\$ExeName\SentinelPilot-Launcher.cmd"
 
     # Cleanup bundle dir
     try { Remove-Item -Recurse -Force $bundleDir } catch { }
